@@ -58,15 +58,14 @@ def main():
         default=argparse.SUPPRESS,
         help='display the program\'s version and exit.')
 
-    subparsers = parser_.add_subparsers(dest='cmd', metavar='COMMAND')
-    subparsers.add_parser(
-        name='get_memes',
-        help='Display a list of available meme templates and exit.')
+    argparse.ArgumentParser(
+        prog='get_memes',
+        description='Display a list of available meme templates and exit.')
 
-    add_caption_parser = subparsers.add_parser(
-        name='add_caption',
+    add_caption_parser = argparse.ArgumentParser(
+        prog='add_caption',
         formatter_class=argparse.RawTextHelpFormatter,
-        help='Add a caption to meme template and print the resulting meme\'s '
+        description='Add a caption to meme template and print the resulting meme\'s '
              'image URL.')
 
     add_caption_parser.add_argument('-d', '--debug', action='store_true')
@@ -213,20 +212,18 @@ def main():
                              default=argparse.SUPPRESS,
                              dest='outline_color')
 
-    args = parser_.parse_args()
+    args, extras = parser_.parse_known_args()
 
     if hasattr(args, 'version'):
         message = '{} v{}'.format(imgflippy.__name__, imgflippy.__version__)
         parser_.exit(status=0, message=message)
 
-    if not args.cmd:
-        parser_.error(message='too few arguments')
-
     # Display a table of the templates available for captioning.
-    if args.cmd == 'get_memes':
+    if 'get_memes' in extras:
         return parser_.exit(status=0, message=utils.get_meme_template_info())
 
-    elif args.cmd == 'add_caption':
+    elif 'add_caption' in extras:
+        args, extras = add_caption_parser.parse_known_args(extras[1:])
         if not isinstance(args.template, MemeTemplate):
             raise RuntimeError
 
@@ -234,10 +231,13 @@ def main():
             logger.setLevel(logging.DEBUG)
 
         kwargs = {k: v for k, v in vars(args).items() if
-                  k not in ['cmd', 'debug', 'template']}
+                  k not in ['debug', 'template']}
 
         result = args.template.add_caption(**kwargs)
         print(result.url)
+    else:
+        # Display help if no valid command is passed
+        parser_.print_help()
 
     sys.exit(0)
 
