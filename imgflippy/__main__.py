@@ -42,6 +42,42 @@ class BoxesAction(argparse.Action):
         setattr(namespace, 'boxes', boxes_)
 
 
+def format_help(self, command_parsers):
+    # self == parser
+    formatter = self._get_formatter()
+
+    # usage
+    formatter.add_usage(self.usage, self._actions,
+                        self._mutually_exclusive_groups)
+
+    # description
+    formatter.add_text(self.description)
+
+    # positionals, optionals and user-defined groups
+    for action_group in self._action_groups:
+        #print("action_group ", action_group[0])
+        #print(dir(action_group[0]))
+        #print("action_group ", dir(action_group))
+        formatter.start_section(action_group.title)
+        if(action_group.title == 'positional arguments'):
+            #for command in command_parsers:
+                #print("tite2 ", action_group)
+            formatter.add_text(action_group.description)
+            formatter.add_arguments(action_group._group_actions)
+            #print("action_group._group_actions ", action_group._group_actions)
+        else:
+            print("tite ", action_group.title)
+            formatter.add_text(action_group.description)
+            formatter.add_arguments(action_group._group_actions)
+        formatter.end_section()
+
+    # epilog
+    #formatter.add_text(self.epilog)
+    formatter.add_text('FLUFFY CATS')
+
+    # determine help from format above
+    return formatter.format_help()
+
 def main():
 
     parser_ = argparse.ArgumentParser(
@@ -58,7 +94,7 @@ def main():
         default=argparse.SUPPRESS,
         help='display the program\'s version and exit.')
 
-    argparse.ArgumentParser(
+    get_memes_parser = argparse.ArgumentParser(
         prog='get_memes',
         description='Display a list of available meme templates and exit.')
 
@@ -236,8 +272,9 @@ def main():
         result = args.template.add_caption(**kwargs)
         print(result.url)
     else:
+        print(format_help(parser_, [add_caption_parser, get_memes_parser]))
         # Display help if no valid command is passed
-        parser_.print_help()
+        #parser_.print_help()
 
     sys.exit(0)
 
